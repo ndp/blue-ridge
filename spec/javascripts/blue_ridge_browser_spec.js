@@ -2,7 +2,26 @@ require("spec_helper.js");
 require("../../lib/blue-ridge.js");
 
 Screw.Unit(function() {
-  describe("BlueRidge.Browser", function(){
+  describe("BlueRidge.Browser", function() {
+
+    describe('require', function() {
+      it('has no files in the initial state (or by the time tests are run)', function() {
+        expect(BlueRidge.Browser.requirements).to(be_empty);
+      });
+      it('adds an entry file to an array', function() {
+        BlueRidge.Browser.require('some_file', {options: true});
+        expect(BlueRidge.Browser.requirements).to(have_length, 1);
+      });
+      it('adds a file name to an array of entries', function() {
+        BlueRidge.Browser.require('some_file', {options: true});
+        expect(BlueRidge.Browser.requirements[0].url).to(equal, 'some_file');
+      });
+      it('adds the options to an array of entries', function() {
+        BlueRidge.Browser.require('some_file', {options: true});
+        expect(BlueRidge.Browser.requirements[0].options).to(equal, {options: true});
+      });
+    });
+
     describe("deriveSpecNameFromCurrentFile", function(){
       it("returns the current file's patch from the fixtures directory minus the '.html' suffix and with '_spec.js' appended", function(){
         stub(BlueRidge.Browser, 'currentFile').and_return("/some/prefix/path/fixtures/path/to/current_file.html");
