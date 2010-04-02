@@ -41,50 +41,60 @@ Screw.Unit(function() {
       });
     });
 
-    //TODO split most of these tests out into tests for the treatUrlAsRelativeTo* functions
-    describe("require", function(){
-      describe("correctly alters the incoming URL based on the current file's relation to the 'fixtures' directory", function(){
-        describe("when requiring a BlueRidge dependency", function(){
-          it("prepends a single '../' if the current file is directly in the 'fixtures' directory", function(){
-            stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/current_file.html");
-            mock(BlueRidge.Browser).should_receive("createScriptTag").with_arguments("../some_file.js", null).at_least(1, "time");
-            BlueRidge.Browser.require("some_file.js", {system: true});
-          });
-          
-          it("prepends two '../' if the current file is in a subdirectory directly beneath the 'fixtures' directory", function(){
-            stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/foo/current_file.html");
-            mock(BlueRidge.Browser).should_receive("createScriptTag").with_arguments("../../some_file.js", null).at_least(1, "time");
-            BlueRidge.Browser.require("some_file.js", {system: true});
-          });
+    describe('treatUrl', function() {
+      it("should map URL relative to spec file if system flag not set", function() {
+        mock(BlueRidge.Browser).should_receive("treatUrlAsRelativeToSpecFile").exactly('once');
+        BlueRidge.Browser.treatUrl('u r l');
+      });
+      it("should map URL relative to current file if system flag set", function() {
+        mock(BlueRidge.Browser).should_receive("treatUrlAsRelativeToCurrentFile").exactly('once');
+        BlueRidge.Browser.treatUrl('u r l', true);
+      });
+    });
 
-          it("prepends eight '../' if the current file is in a subdirectory nested seven-directories beneath the 'fixtures' directory", function(){
-            stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/1/2/3/4/5/6/7/current_file.html");
-            mock(BlueRidge.Browser).should_receive("createScriptTag").with_arguments("../../../../../../../../some_file.js", null).at_least(1, "time");
-            BlueRidge.Browser.require("some_file.js", {system: true});
-          });
-        });
-        
-        describe("when requiring a spec dependency", function(){
-          it("prepends a single '../' if the current file is directly in the 'fixtures' directory", function(){
-            stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/current_file.html");
-            mock(BlueRidge.Browser).should_receive("createScriptTag").with_arguments("../some_file.js", null).at_least(1, "time");
-            BlueRidge.Browser.require("some_file.js");
-          });
-          
-          it("pops off one '../' and then prepends two '../' if the current file is in a subdirectory directly beneath the 'fixtures' directory", function(){
-            stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/foo/current_file.html");
-            mock(BlueRidge.Browser).should_receive("createScriptTag").with_arguments("../../some_file.js", null).at_least(1, "time");
-            BlueRidge.Browser.require("../some_file.js");
-          });
-
-          it("pops off seven '../' and then prepends eight '../' if the current file is in a subdirectory nested seven-directories beneath the 'fixtures' directory", function(){
-            stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/1/2/3/4/5/6/7/current_file.html");
-            mock(BlueRidge.Browser).should_receive("createScriptTag").with_arguments("../../../../../../../../some_file.js", null).at_least(1, "time");
-            BlueRidge.Browser.require("../../../../../../../some_file.js");
-          });
-        });
+    describe('treatUrlAsRelativeToCurrentFile', function() {
+      it("prepends a single '../' if the current file is directly in the 'fixtures' directory", function(){
+        stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/current_file.html");
+        var f = BlueRidge.Browser.treatUrlAsRelativeToCurrentFile("some_file.js");
+        expect(f).to(equal,"../some_file.js");
       });
 
+      it("prepends two '../' if the current file is in a subdirectory directly beneath the 'fixtures' directory", function(){
+        stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/foo/current_file.html");
+        f = BlueRidge.Browser.treatUrlAsRelativeToCurrentFile("some_file.js", {system: true});
+        expect(f).to(equal,"../../some_file.js");
+      });
+
+      it("prepends eight '../' if the current file is in a subdirectory nested seven-directories beneath the 'fixtures' directory", function(){
+        stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/1/2/3/4/5/6/7/current_file.html");
+        f = BlueRidge.Browser.treatUrlAsRelativeToCurrentFile("some_file.js", {system: true});
+        expect(f).to(equal,"../../../../../../../../some_file.js");
+      });
+    });
+
+    describe('treatUrlAsRelativeToSpecFile', function() {
+      it("prepends a single '../' if the current file is directly in the 'fixtures' directory", function(){
+        stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/current_file.html");
+        f = BlueRidge.Browser.treatUrlAsRelativeToSpecFile("some_file.js");
+        expect(f).to(equal,"../some_file.js");
+      });
+
+      it("pops off one '../' and then prepends two '../' if the current file is in a subdirectory directly beneath the 'fixtures' directory", function(){
+        stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/foo/current_file.html");
+        f = BlueRidge.Browser.treatUrlAsRelativeToSpecFile("../some_file.js");
+        expect(f).to(equal,"../../some_file.js");
+      });
+
+      it("pops off seven '../' and then prepends eight '../' if the current file is in a subdirectory nested seven-directories beneath the 'fixtures' directory", function(){
+        stub(BlueRidge.Browser, 'currentFile').and_return("/ignored/fixtures/1/2/3/4/5/6/7/current_file.html");
+        f = BlueRidge.Browser.treatUrlAsRelativeToSpecFile("../../../../../../../some_file.js");
+        expect(f).to(equal,"../../../../../../../../some_file.js");
+      });
+    });
+
+    
+    //TODO split most of these tests out into tests for the treatUrlAsRelativeTo* functions
+    describe("require", function(){
       // TODO: note, these tests conflict with the ones above because Smoke doesn't reset its stubs back to their "natural" values;
       // need to improve Smoke to be more forgiving on stubbing global objects
 
