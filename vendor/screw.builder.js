@@ -65,20 +65,19 @@ var Screw = (function($) {
   };
 
   $(screw).queue(function() { $(screw).trigger('loading') });
-  
-  $(window).load(function(){
+
+  screw.run = function(){
     $('<div class="describe"></div>')
       .append('<h3 class="status"></h3>')
       .append('<ol class="befores"></ol>')
       .append('<ul class="describes"></ul>')
       .append('<ol class="afters"></ol>')
       .appendTo('body');
-  
+
     $(screw).dequeue();
     $(screw).trigger('loaded');
-  });
+  };
   
   return screw;
 })(jQuery);
 
-alert('hoooooodsfajklkdsjaf');
